@@ -1,6 +1,8 @@
 import React, {Component} from 'react'
 import ImportComponent from './components/Import'
 
+import TranslateContainer from './containers/TranslateContainer'
+
 class App extends Component {
   render () {
     return (
@@ -8,6 +10,7 @@ class App extends Component {
         <header className='App-header'>
           <ImportComponent />
         </header>
+        <TranslateContainer from='ITA' to='EN' />
       </div>
     )
   }

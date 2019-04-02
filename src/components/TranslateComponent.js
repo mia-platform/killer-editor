@@ -1,8 +1,10 @@
+/* eslint react/no-multi-comp: 0 */
+
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 
 import {
-  Table, Input, Button, Popconfirm, Form
+  Table, Input, Form
 } from 'antd'
 
 const FormItem = Form.Item
@@ -13,6 +15,11 @@ const EditableRow = ({form, index, ...props}) => (
     <tr {...props} />
   </EditableContext.Provider>
 )
+
+EditableRow.propTypes = {
+  form: PropTypes.any,
+  index: PropTypes.any
+}
 
 const EditableFormRow = Form.create()(EditableRow)
 
@@ -93,6 +100,15 @@ class EditableCell extends React.Component {
   }
 }
 
+EditableCell.propTypes = {
+  dataIndex: PropTypes.any,
+  editable: PropTypes.any,
+  handleSave: PropTypes.func,
+  index: PropTypes.any,
+  record: PropTypes.any,
+  title: PropTypes.any
+}
+
 class TranslateComponent extends Component {
   handleSave = (row) => {
     this.props.onChanged({key: row.key, text: row.to})
@@ -159,13 +175,13 @@ TranslateComponent.propTypes = {
     from: PropTypes.string,
     to: PropTypes.string
   }).isRequired).isRequired,
-  fromLangId: PropTypes.string.isRequired,
+  // fromLangId: PropTypes.string.isRequired,
+  // toLangId: PropTypes.string.isRequired,
   languages: PropTypes.shape({
     from: PropTypes.shape({}).isRequired,
     to: PropTypes.shape({}).isRequired
   }).isRequired,
-  onChanged: PropTypes.func.isRequired,
-  toLangId: PropTypes.string.isRequired
+  onChanged: PropTypes.func.isRequired
 }
 
 export default TranslateComponent

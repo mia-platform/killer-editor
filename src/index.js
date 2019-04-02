@@ -1,4 +1,4 @@
-import React, {StrictMode} from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom'
 import {BrowserRouter} from 'react-router-dom'
 import {Provider} from 'react-redux'
@@ -22,9 +22,7 @@ const rootComponent = (
     <PersistGate loading={null} persistor={persistor}>
       <IntlProvider locale={language} messages={messages[language]()}>
         <BrowserRouter basename={process.env.PUBLIC_URL}>
-          <StrictMode>
-            <App />
-          </StrictMode>
+          <App />
         </BrowserRouter>
       </IntlProvider>
     </PersistGate>

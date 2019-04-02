@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: nielsen
+  name: panel-website
+  annotations:
+    date: '{{RELEASE_DATE}}'
+    author: '{{AUTHOR_EMAIL}}'
+    commit-sha: '{{COMMIT_SHA}}'
+  labels:
+    component: panel-website
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: panel-website
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        date: '{{RELEASE_DATE}}'
+        author: '{{AUTHOR_EMAIL}}'
+        commit-sha: '{{COMMIT_SHA}}'
+      labels:
+        component: panel-website
+    spec:
+      imagePullSecrets:
+        - name: nexus-gcloud
+      containers:
+        - name: panel-website
+          image: nexus.mia-platform.eu/nielsen/panel-website:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: 20Mi
+            requests:
+              memory: 5Mi
+          volumeMounts: []
+          env: []
+      volumes: []

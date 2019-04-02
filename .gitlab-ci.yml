@@ -1,0 +1,107 @@
+image: node:10.15.2-alpine
+
+variables:
+  IMAGE_NAME: %CUSTOM_PLUGIN_IMAGE_NAME%
+  DOCKER_HOST: tcp://docker:2375/
+  GIT_DEPTH: 1
+
+services:
+  - name: docker:stable-dind
+    alias: docker
+
+stages:
+  - build
+  - test
+  - package
+  - tag-image
+  - deploy
+
+compile:
+  stage: build
+
+  before_script:
+    - node -v
+    - yarn -v
+
+  script:
+    - yarn install
+
+  cache:
+    key: "${CI_COMMIT_REF_SLUG}"
+    paths:
+      - node_modules
+    policy: push
+
+test:
+  stage: test
+
+  coverage: '/^Statements\s*:\s*([^%]+)/'
+  script:
+    - yarn lint
+    - yarn coverage
+
+  cache:
+    key: "${CI_COMMIT_REF_SLUG}"
+    paths:
+      - node_modules
+    policy: pull
+
+  artifacts:
+    when: on_success
+    expire_in: 1 day
+    untracked: true
+    paths:
+      - './'
+
+.docker-job: &docker_job
+  image: docker:latest
+
+  variables:
+    REMOTE_IMAGE_NAME: ${NEXUS_URL}/${IMAGE_NAME}
+
+  before_script:
+    - docker login -u ${NEXUS_USER} -p ${NEXUS_TOKEN} ${NEXUS_URL}
+
+build-latest:
+  stage: package
+
+  <<: *docker_job
+
+  script:
+    - docker build --build-arg COMMIT_SHA=${CI_COMMIT_SHA} --pull -t ${REMOTE_IMAGE_NAME}:latest .
+    - docker run --rm ${REMOTE_IMAGE_NAME} cat /usr/static/commit.sha
+    - docker push ${REMOTE_IMAGE_NAME}:latest
+    - docker save ${REMOTE_IMAGE_NAME}:latest -o latest.tar.gz
+
+  artifacts:
+    when: on_success
+    expire_in: 1 day
+    paths:
+      - latest.tar.gz
+
+  only:
+    - master
+    - tags
+
+build-tags:
+  stage: tag-image
+
+  <<: *docker_job
+
+  script:
+    - export PATCH_TAG=$(echo ${CI_COMMIT_TAG} | awk -Fv '{ print $2 }')
+    - export MINOR_TAG=$(echo ${PATCH_TAG} | awk -F. -v OFS='.' '{ print $1, $2 }')
+    - export MAJOR_TAG=$(echo ${PATCH_TAG} | awk -F. '{ print $1 }')
+    - docker load -i latest.tar.gz
+    - docker tag ${REMOTE_IMAGE_NAME}:latest ${REMOTE_IMAGE_NAME}:${MAJOR_TAG}
+    - docker tag ${REMOTE_IMAGE_NAME}:latest ${REMOTE_IMAGE_NAME}:${MINOR_TAG}
+    - docker tag ${REMOTE_IMAGE_NAME}:latest ${REMOTE_IMAGE_NAME}:${PATCH_TAG}
+    - docker push ${REMOTE_IMAGE_NAME}:${MAJOR_TAG}
+    - docker push ${REMOTE_IMAGE_NAME}:${MINOR_TAG}
+    - docker push ${REMOTE_IMAGE_NAME}:${PATCH_TAG}
+
+  dependencies:
+    - build-latest
+
+  only:
+    - tags

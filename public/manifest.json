@@ -1,6 +1,6 @@
 {
-  "short_name": "%CUSTOM_PLUGIN_SERVICE_NAME%",
-  "name": "%CUSTOM_PLUGIN_SERVICE_NAME%",
+  "short_name": "killer-editor",
+  "name": "killer-editor",
   "icons": [
     {
       "src": "favicon.ico",

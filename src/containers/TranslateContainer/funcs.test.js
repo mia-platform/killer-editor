@@ -1,8 +1,8 @@
 
-import sum from './funcs'
+import mapStateToProps from './funcs'
 
-test('adds 1 + 2 to equal 3', () => {
-  expect(sum({
+test('mapStateToProps', () => {
+  expect(mapStateToProps({
     copies: {
       hello: {
         description: 'The description',
